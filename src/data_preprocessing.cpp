@@ -10,6 +10,7 @@
 
 using namespace std;
 
+// read shape info from .shape file (e.g. 3072,10000)
 pair<int, int> read_shape(const string& shape_file) {
     ifstream file(shape_file);
     if (!file) {
@@ -34,6 +35,7 @@ pair<int, int> read_shape(const string& shape_file) {
     exit(1);
 }
 
+// loads a binary float matrix (shape is in .shape file)
 vector<vector<float>> load_matrix(const string& base_name) {
     auto [rows, cols] = read_shape(base_name + ".shape");
 
@@ -54,6 +56,7 @@ vector<vector<float>> load_matrix(const string& base_name) {
     return matrix;
 }
 
+// loads a 1d int vector from file
 vector<int> load_vector(const string& base_name) {
     auto [length, _] = read_shape(base_name + ".shape");
     ifstream file(base_name + ".bin", ios::binary);
@@ -62,6 +65,7 @@ vector<int> load_vector(const string& base_name) {
     return vec;
 }
 
+// loads the actual dataset (X and y) based on split
 pair<vector<vector<float>>, vector<int>> load_dataset(const string& split) {
     string base_path = "/Users/martin/Desktop/conv_net/datasets/";
     string folder = (split == "train") ? "train_data" : "test_data";
@@ -77,6 +81,7 @@ pair<vector<vector<float>>, vector<int>> load_dataset(const string& split) {
     return {X, y};
 }
 
+// convert labels to one-hot format
 vector<vector<float>> one_hot_encode(const vector<int>& y, int num_classes) {
     int num_samples = y.size();
     vector<vector<float>> Y(num_samples, vector<float>(num_classes, 0.0f));
@@ -89,20 +94,19 @@ vector<vector<float>> one_hot_encode(const vector<int>& y, int num_classes) {
     return Y;
 }
 
-
-// Mean pixel intensity of all the images
+// compute mean pixel value per image
 vector<float> compute_mean(const vector<vector<float>>& X) {
     int rows = X.size();
     int cols = X[0].size();
     vector<float> mean(rows, 0.0f);
 
     for (int i = 0; i < rows; ++i)
-        mean[i] = std::accumulate(X[i].begin(), X[i].end(), 0.0f) / cols;
+        mean[i] = accumulate(X[i].begin(), X[i].end(), 0.0f) / cols;
 
     return mean;
 }
 
-// Standard deviation for all pixels (for all images)
+// compute std deviation per image (needed for normalization)
 vector<float> compute_std_dev(const vector<vector<float>>& X, const vector<float>& mean) {
     int rows = X.size();
     int cols = X[0].size();
@@ -115,13 +119,13 @@ vector<float> compute_std_dev(const vector<vector<float>>& X, const vector<float
             sum_sq += diff * diff;
         }
         std[i] = sqrt(sum_sq / cols);
-        if (std[i] < 1e-6f) std[i] = 1.0f;
+        if (std[i] < 1e-6f) std[i] = 1.0f; // avoid division by zero
     }
 
     return std;
 }
 
-// Standard normalization procedure before training on image data
+// normalize the matrix (zero mean, unit std)
 void normalize(vector<vector<float>>& X, const vector<float>& mean, const vector<float>& std) {
     int rows = X.size();
     int cols = X[0].size();
@@ -131,6 +135,7 @@ void normalize(vector<vector<float>>& X, const vector<float>& mean, const vector
             X[i][j] = (X[i][j] - mean[i]) / std[i];
 }
 
+// reshape flat matrix X into 4d images
 vector<vector<vector<vector<float>>>> convert_to_images(
     const vector<vector<float>>& X, int channels, int height, int width
 ) {
@@ -155,4 +160,3 @@ vector<vector<vector<vector<float>>>> convert_to_images(
 
     return images;
 }
-
