@@ -1,4 +1,4 @@
-# conv_net
+# Convolutional Neural Network for Image Classification
 
 A simple convolutional neural network (CNN) implemented from scratch in C++ for image classification on CIFAR-10-style datasets.
 
