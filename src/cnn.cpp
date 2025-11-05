@@ -122,7 +122,7 @@ CNN::CNN(int in_channels, int in_height, int in_width,
     W = random_matrix(num_classes, flat_size);
     b = vector<float>(num_classes, 0.0f);
 
-    // allocate gradient buffers
+    // allocate tensor and matrices for gradient computations
     d_filters = Tensor4D(num_filters, Tensor3D(input_channels, vector<vector<float>>(filter_size, vector<float>(filter_size, 0.0f))));
     dW = Matrix(num_classes, vector<float>(flat_size, 0.0f));
     db = vector<float>(num_classes, 0.0f);
